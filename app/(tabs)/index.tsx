@@ -1,74 +1,130 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image, TextInput, TouchableOpacity, View, Alert, Text, ActivityIndicator } from 'react-native';
+import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import Animated, { FadeInUp, FadeOut } from 'react-native-reanimated';
 
-import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { registerDevice } from '@/services/ttnApi';
+import { styles } from '../../styles/index.styles';
+import TTNStatusWidget from '@/components/TTNStatusWidget';
 
 export default function HomeScreen() {
+  const [deviceId, setDeviceId] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [successToast, setSuccessToast] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const user = await AsyncStorage.getItem('currentUser');
+      if (!user) {
+        router.replace('/auth');
+      } else {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  // Oculta el toast automáticamente
+  useEffect(() => {
+    if (successToast) {
+      const timeout = setTimeout(() => setSuccessToast(false), 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [successToast]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111' }}>
+        <ActivityIndicator size="large" color="#00f0ff" />
+        <Text style={{ color: '#fff', marginTop: 10 }}>Verificando sesión...</Text>
+      </View>
+    );
+  }
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
       headerImage={
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
+          source={require('@/assets/images/ttnLogo2.jpg')}
           style={styles.reactLogo}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
+      }
+    >
+      <Animated.View
+        entering={FadeInUp.duration(500)}
+        exiting={FadeOut.duration(200)}
+        style={{ flex: 1 }}
+      >
+        <ThemedView style={styles.titleContainer}>
+          <ThemedText type="title" style={styles.titleText}>
+            Registrar nuevo dispositivo
+          </ThemedText>
+        </ThemedView>
+
+        <TTNStatusWidget />
+
+        <View style={styles.formContainer}>
+          <TextInput
+            placeholder="Introduce el Device ID"
+            placeholderTextColor="#9CA3AF"
+            value={deviceId}
+            onChangeText={setDeviceId}
+            style={styles.input}
+          />
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={async () => {
+              if (!deviceId.trim()) {
+                Alert.alert('Error', 'Por favor, introduce un Device ID válido');
+                return;
+              }
+
+              try {
+                await registerDevice(deviceId);
+                setDeviceId('');
+                setSuccessToast(true); // ✅ mostramos el toast animado
+              } catch (err) {
+                Alert.alert('Error', 'No se pudo registrar el dispositivo');
+              }
+            }}
+          >
+            <Text style={styles.buttonText}>Registrar dispositivo</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+
+      {/* ✅ TOAST ANIMADO */}
+      {successToast && (
+        <Animated.View
+          entering={FadeInUp.duration(300)}
+          exiting={FadeOut.duration(300)}
+          style={{
+            position: 'absolute',
+            bottom: 40,
+            alignSelf: 'center',
+            backgroundColor: '#00c851',
+            paddingVertical: 12,
+            paddingHorizontal: 24,
+            borderRadius: 20,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+          }}
+        >
+          <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+            ✅ Dispositivo registrado
+          </Text>
+        </Animated.View>
+      )}
     </ParallaxScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
