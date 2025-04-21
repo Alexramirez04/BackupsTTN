@@ -13,22 +13,22 @@ function generateRandomHex(length) {
 }
 
 // 👉 REGISTRAR NUEVO DISPOSITIVO
-export async function registerDevice(deviceId, addLog) {
+export async function registerDevice({ deviceId, devEUI, joinEUI, appKey }, addLog) {
   addLog?.(`📦 Registrando dispositivo "${deviceId}" en TTN...`);
 
   const payload = {
     end_device: {
       ids: {
         device_id: deviceId.toLowerCase(),
-        dev_eui: generateRandomHex(16),
-        join_eui: "800000000000000C"
+        dev_eui: devEUI.toUpperCase(),
+        join_eui: joinEUI.toUpperCase()
       },
       join_server_address: "eu1.cloud.thethings.network",
       network_server_address: "eu1.cloud.thethings.network",
       application_server_address: "eu1.cloud.thethings.network",
       root_keys: {
         app_key: {
-          key: generateRandomHex(32)
+          key: appKey.toUpperCase()
         }
       },
       lorawan_version: "1.0.3",
@@ -74,24 +74,42 @@ export async function getDevices(addLog) {
   }
 
   const data = await response.json();
-  addLog?.(`✅ ${data.end_devices.length} dispositivos encontrados`);
-  return data.end_devices;
+  const dispositivos = data.end_devices || [];
+
+  // Consultamos a tu backend para saber si están activos
+  const devicesWithStatus = await Promise.all(
+    dispositivos.map(async (device) => {
+      try {
+        const estadoRes = await fetch(`https://1b25-90-167-166-95.ngrok-free.app/estado/${device.ids.device_id}`);
+        const estado = await estadoRes.json();
+
+        return {
+          ...device,
+          status: estado.status === 'activo' ? 'active' : 'inactive',
+        };
+      } catch (e) {
+        return {
+          ...device,
+          status: 'inactive',
+        };
+      }
+    })
+  );
+
+  return devicesWithStatus;
 }
 
 // 👉 DETALLES DE UN DISPOSITIVO
 export async function getDeviceById(deviceId, addLog) {
   addLog?.(`🔍 Obteniendo info de "${deviceId}"...`);
 
-  const response = await fetch(
-    `${BASE_URL}/applications/${APP_ID}/devices/${deviceId}`,
-    {
-      method: 'GET',
-      headers: {
-        Authorization: API_KEY,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+  const response = await fetch(`${BASE_URL}/applications/${APP_ID}/devices/${deviceId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: API_KEY,
+      'Content-Type': 'application/json',
+    },
+  });
 
   if (!response.ok) {
     const error = await response.json();
@@ -100,8 +118,14 @@ export async function getDeviceById(deviceId, addLog) {
   }
 
   const data = await response.json();
-  addLog?.(`✅ Información de "${deviceId}" recibida`);
-  return data;
+
+  try {
+    const estadoRes = await fetch(`https://1b25-90-167-166-95.ngrok-free.app/estado/${deviceId}`);
+    const estado = await estadoRes.json();
+    return { ...data, status: estado.status === 'activo' ? 'active' : 'inactive' };
+  } catch (e) {
+    return { ...data, status: 'inactive' };
+  }
 }
 
 // 👉 ELIMINAR UN DISPOSITIVO

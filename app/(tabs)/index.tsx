@@ -13,6 +13,9 @@ import TTNStatusWidget from '@/components/TTNStatusWidget';
 
 export default function HomeScreen() {
   const [deviceId, setDeviceId] = useState('');
+  const [devEUI, setDevEUI] = useState('');
+  const [joinEUI, setJoinEUI] = useState('');
+  const [appKey, setAppKey] = useState('');
   const [loading, setLoading] = useState(true);
   const [successToast, setSuccessToast] = useState(false);
   const router = useRouter();
@@ -26,11 +29,9 @@ export default function HomeScreen() {
         setLoading(false);
       }
     };
-
     checkSession();
   }, []);
 
-  // Oculta el toast automáticamente
   useEffect(() => {
     if (successToast) {
       const timeout = setTimeout(() => setSuccessToast(false), 2000);
@@ -72,25 +73,49 @@ export default function HomeScreen() {
 
         <View style={styles.formContainer}>
           <TextInput
-            placeholder="Introduce el Device ID"
+            placeholder="Device ID"
             placeholderTextColor="#9CA3AF"
             value={deviceId}
             onChangeText={setDeviceId}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="DevEUI (16 caracteres HEX)"
+            placeholderTextColor="#9CA3AF"
+            value={devEUI}
+            onChangeText={setDevEUI}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="JoinEUI (16 caracteres HEX)"
+            placeholderTextColor="#9CA3AF"
+            value={joinEUI}
+            onChangeText={setJoinEUI}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="AppKey (32 caracteres HEX)"
+            placeholderTextColor="#9CA3AF"
+            value={appKey}
+            onChangeText={setAppKey}
             style={styles.input}
           />
 
           <TouchableOpacity
             style={styles.button}
             onPress={async () => {
-              if (!deviceId.trim()) {
-                Alert.alert('Error', 'Por favor, introduce un Device ID válido');
+              if (!deviceId || !devEUI || !joinEUI || !appKey) {
+                Alert.alert('Error', 'Por favor, completa todos los campos');
                 return;
               }
 
               try {
-                await registerDevice(deviceId);
+                await registerDevice({ deviceId, devEUI, joinEUI, appKey });
                 setDeviceId('');
-                setSuccessToast(true); // ✅ mostramos el toast animado
+                setDevEUI('');
+                setJoinEUI('');
+                setAppKey('');
+                setSuccessToast(true);
               } catch (err) {
                 Alert.alert('Error', 'No se pudo registrar el dispositivo');
               }
@@ -101,7 +126,6 @@ export default function HomeScreen() {
         </View>
       </Animated.View>
 
-      {/* ✅ TOAST ANIMADO */}
       {successToast && (
         <Animated.View
           entering={FadeInUp.duration(300)}
