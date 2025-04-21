@@ -85,7 +85,7 @@ export async function getDevices(addLog) {
 
         return {
           ...device,
-          status: estado.status === 'activo' ? 'active' : 'inactive',
+          status: estado.status === 'active' ? 'active' : 'inactive',
         };
       } catch (e) {
         return {
@@ -122,11 +122,18 @@ export async function getDeviceById(deviceId, addLog) {
   try {
     const estadoRes = await fetch(`https://1b25-90-167-166-95.ngrok-free.app/estado/${deviceId}`);
     const estado = await estadoRes.json();
-    return { ...data, status: estado.status === 'activo' ? 'active' : 'inactive' };
+
+    return {
+      ...data,
+      status: estado.status === 'active' ? 'active' : 'inactive',
+      temperatura: estado.temperatura ?? null,
+      humedad: estado.humedad ?? null,
+    };
   } catch (e) {
     return { ...data, status: 'inactive' };
   }
 }
+
 
 // 👉 ELIMINAR UN DISPOSITIVO
 export async function deleteDevice(deviceId, addLog) {

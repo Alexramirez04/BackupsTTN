@@ -94,6 +94,15 @@ export default function DetallesDispositivo() {
               value={device.created_at?.split('T')[0]}
             />
 
+            {/* ✅ Mostramos temperatura y humedad si existen */}
+            {device.temperatura !== undefined && (
+              <DetailRow icon="thermometer" label="Temperatura" value={`${device.temperatura} °C`} />
+            )}
+
+            {device.humedad !== undefined && (
+              <DetailRow icon="water-percent" label="Humedad" value={`${device.humedad} %`} />
+            )}
+
             <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
               <ThemedText style={styles.deleteButtonText}>Eliminar Dispositivo</ThemedText>
             </TouchableOpacity>
