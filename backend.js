@@ -4,10 +4,20 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// Guardamos la última vez y los datos del sensor
 const sensores = {};
+const historico = {};
+const logs = []; // ✅ Guardamos todos los eventos importantes
 
-// TTN mandará aquí los datos del sensor
+// 🧠 Utilidad para guardar logs
+function agregarLog(mensaje) {
+  logs.push({
+    ts: new Date().toISOString(),
+    mensaje
+  });
+  if (logs.length > 100) logs.splice(0, logs.length - 100); // máx. 100 logs
+}
+
+// TTN enviará aquí los uplinks
 app.post('/webhook/ttn', (req, res) => {
   const deviceId = req.body?.end_device_ids?.device_id;
   const receivedAt = req.body?.received_at;
@@ -15,38 +25,52 @@ app.post('/webhook/ttn', (req, res) => {
   if (deviceId && receivedAt) {
     const temperatura = req.body.uplink_message?.decoded_payload?.temperature;
     const humedad = req.body.uplink_message?.decoded_payload?.humidity;
-  
+    const timestamp = new Date(receivedAt);
+
     sensores[deviceId] = {
-      lastSeen: new Date(receivedAt),
+      lastSeen: timestamp,
       temperatura,
       humedad
     };
-  
-    console.log(`📦 ${deviceId} → ${receivedAt}`);
-    console.log('📊 Datos recibidos:', { temperatura, humedad });
-  
-    // 👇 Añade esta línea para ver todo el JSON
-    console.log(JSON.stringify(req.body, null, 2));
-  }
-   else {
+
+    if (!historico[deviceId]) historico[deviceId] = [];
+
+    historico[deviceId].push({
+      ts: timestamp.toISOString(),
+      temperatura,
+      humedad
+    });
+
+    if (historico[deviceId].length > 20) {
+      historico[deviceId] = historico[deviceId].slice(-20);
+    }
+
+    const resumen = `📦 ${deviceId} → ${timestamp.toISOString()} | 🌡 ${temperatura} °C | 💧 ${humedad} %`;
+    console.log(resumen);
+    agregarLog(resumen);
+  } else {
     console.log('❌ Webhook recibido sin datos válidos');
+    agregarLog('❌ Webhook recibido sin datos válidos');
   }
 
   res.status(200).send('OK');
 });
 
-// Endpoint para que la app pregunte el estado del dispositivo
+// Estado actual
 app.get('/estado/:deviceId', (req, res) => {
   const { deviceId } = req.params;
   const data = sensores[deviceId];
 
   if (!data) {
+    agregarLog(`❓ Estado solicitado de ${deviceId}: desconocido`);
     return res.json({ deviceId, status: 'desconocido', lastSeen: null });
   }
 
   const ahora = new Date();
   const minutos = (ahora - data.lastSeen) / 1000 / 60;
   const status = minutos <= 5 ? 'active' : 'inactive';
+
+  agregarLog(`🔍 Estado solicitado de ${deviceId}: ${status}`);
 
   res.json({
     deviceId,
@@ -57,6 +81,20 @@ app.get('/estado/:deviceId', (req, res) => {
   });
 });
 
+// Histórico
+app.get('/historico/:deviceId', (req, res) => {
+  const { deviceId } = req.params;
+  const data = historico[deviceId] || [];
+  agregarLog(`📈 Histórico solicitado de ${deviceId} (${data.length} puntos)`);
+  res.json(data);
+});
+
+// Logs generales de la app
+app.get('/logs', (req, res) => {
+  res.json(logs);
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Backend funcionando en http://localhost:${PORT}`);
+  agregarLog('🚀 Backend iniciado');
 });

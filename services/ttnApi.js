@@ -1,9 +1,10 @@
 const BASE_URL = "https://eu1.cloud.thethings.network/api/v3";
-const API_KEY = "Bearer NNSXS.SRWUH2SEOODOSN3U2W5HQF6YMWM2PBCF62HSXJQ.AXH5KOOEGMKGUPS7KQSCYJW76WGUHLL3DHH2TWOLRXIUS3QQRIHA"; // ⚠️ Solo para pruebas
+const API_KEY = "Bearer NNSXS.SRWUH2SEOODOSN3U2W5HQF6YMWM2PBCF62HSXJQ.AXH5KOOEGMKGUPS7KQSCYJW76WGUHLL3DHH2TWOLRXIUS3QQRIHA";
 const APP_ID = "app-de-pruebas";
+const BACKEND_URL = "https://9fb1-85-50-83-166.ngrok-free.app";
 
 // HEX Generator
-function generateRandomHex(length) {
+export function generateRandomHex(length) {
   const chars = '0123456789ABCDEF';
   let result = '';
   for (let i = 0; i < length; i++) {
@@ -76,22 +77,17 @@ export async function getDevices(addLog) {
   const data = await response.json();
   const dispositivos = data.end_devices || [];
 
-  // Consultamos a tu backend para saber si están activos
   const devicesWithStatus = await Promise.all(
     dispositivos.map(async (device) => {
       try {
-        const estadoRes = await fetch(`https://1b25-90-167-166-95.ngrok-free.app/estado/${device.ids.device_id}`);
+        const estadoRes = await fetch(`${BACKEND_URL}/estado/${device.ids.device_id}`);
         const estado = await estadoRes.json();
-
         return {
           ...device,
           status: estado.status === 'active' ? 'active' : 'inactive',
         };
-      } catch (e) {
-        return {
-          ...device,
-          status: 'inactive',
-        };
+      } catch {
+        return { ...device, status: 'inactive' };
       }
     })
   );
@@ -120,7 +116,7 @@ export async function getDeviceById(deviceId, addLog) {
   const data = await response.json();
 
   try {
-    const estadoRes = await fetch(`https://1b25-90-167-166-95.ngrok-free.app/estado/${deviceId}`);
+    const estadoRes = await fetch(`${BACKEND_URL}/estado/${deviceId}`);
     const estado = await estadoRes.json();
 
     return {
@@ -129,11 +125,10 @@ export async function getDeviceById(deviceId, addLog) {
       temperatura: estado.temperatura ?? null,
       humedad: estado.humedad ?? null,
     };
-  } catch (e) {
+  } catch {
     return { ...data, status: 'inactive' };
   }
 }
-
 
 // 👉 ELIMINAR UN DISPOSITIVO
 export async function deleteDevice(deviceId, addLog) {
