@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   FlatList,
@@ -15,7 +15,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { getDevices } from '@/services/ttnApi';
-import MiniDashboard from '@/components/MiniDashboard'; // ✅ NUEVO
+import MiniDashboard from '@/components/MiniDashboard';
 import { styles } from '../../styles/dispositivos.styles';
 
 type Device = {
@@ -23,6 +23,7 @@ type Device = {
     device_id: string;
   };
   status: string;
+  lastSeen?: string | null; // ✅ esto es lo correcto
 };
 
 export default function DispositivosScreen() {
@@ -33,8 +34,11 @@ export default function DispositivosScreen() {
   const [animationKey, setAnimationKey] = useState(0);
   const router = useRouter();
 
+  // 🔁 Refresco automático
   useEffect(() => {
     loadDevices();
+    const interval = setInterval(loadDevices, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -51,10 +55,18 @@ export default function DispositivosScreen() {
     try {
       setLoading(true);
       const result = await getDevices();
+
+      console.log("📡 Dispositivos actualizados:");
+      result.forEach((d: any) => {
+        console.log(`🔍 ${d.ids.device_id} | status: ${d.status} | lastSeen: ${d.lastSeen}`);
+      });
+
       const devicesWithStatus = result.map((device: Device) => ({
         ...device,
         status: device.status || 'inactive',
-      }));
+        lastSeen: device.lastSeen || null // ✅ este campo es el que faltaba
+      }));      
+
       setDevices(devicesWithStatus);
       setFilteredDevices(devicesWithStatus);
     } catch (err) {
@@ -82,12 +94,11 @@ export default function DispositivosScreen() {
       </ThemedText>
 
       <MiniDashboard
-  key={`dashboard-${animationKey}`} // 👈 Forzar remount
-  total={filteredDevices.length}
-  activos={filteredDevices.filter((d) => d.status === 'active').length}
-  inactivos={filteredDevices.filter((d) => d.status !== 'active').length}
-/>
-
+        key={`dashboard-${animationKey}`}
+        total={filteredDevices.length}
+        activos={filteredDevices.filter((d) => d.status === 'active').length}
+        inactivos={filteredDevices.filter((d) => d.status !== 'active').length}
+      />
 
       <TextInput
         style={styles.searchInput}
@@ -124,6 +135,12 @@ export default function DispositivosScreen() {
                   {item.ids.device_id}
                 </ThemedText>
               </View>
+
+              {/* ✅ MOSTRAR ESTADO Y FECHA VISUAL */}
+              <ThemedText style={{ color: "#888", fontSize: 12, marginTop: 4 }}>
+                Estado real: {item.status} | Última señal:{" "}
+                {item.lastSeen ? new Date(item.lastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "No disponible"}
+              </ThemedText>
             </Animated.View>
           </TouchableOpacity>
         )}

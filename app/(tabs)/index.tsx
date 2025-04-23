@@ -4,24 +4,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInUp, FadeOut } from 'react-native-reanimated';
 
+import * as DocumentPicker from 'expo-document-picker';
+
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { registerDevice } from '@/services/ttnApi';
 import { styles } from '../../styles/index.styles';
 import TTNStatusWidget from '@/components/TTNStatusWidget';
 
 export default function HomeScreen() {
-  const [deviceId, setDeviceId] = useState('sensornumero1');
-  const [devEUI, setDevEUI] = useState('24E124785D120669');
-  const [joinEUI, setJoinEUI] = useState('6666666666666666');
-  const [appKey, setAppKey] = useState('C4140BC8DCC79DFB041B7EEF8F4FF8E1');
-  const [frequencyPlanId, setFrequencyPlanId] = useState('');
-  const [lorawanVersion, setLorawanVersion] = useState('');
-  const [regionalParamsVersion, setRegionalParamsVersion] = useState('');
+  const [deviceId, setDeviceId] = useState('');
+  const [devEUI, setDevEUI] = useState('');
+  const [joinEUI, setJoinEUI] = useState('');
+  const [appKey, setAppKey] = useState('');
   const [loading, setLoading] = useState(true);
   const [successToast, setSuccessToast] = useState(false);
   const router = useRouter();
-  const BACKEND_URL = "https://ccd4-85-52-163-190.ngrok-free.app"; // Cambiar a la URL de tu backend (usando ngrok si es necesario)
 
   useEffect(() => {
     const checkSession = async () => {
@@ -42,70 +41,32 @@ export default function HomeScreen() {
     }
   }, [successToast]);
 
-  const hexRegex = /^[0-9A-Fa-f\s]+$/;
-
-  // Función para registrar el dispositivo
-  const handleRegister = async () => {
-    if (!deviceId || !devEUI || !joinEUI || !appKey) {
-      Alert.alert('Error', 'Por favor, completa todos los campos');
-      return;
-    }
-  
-    const devEUIclean = devEUI.replace(/\s/g, '');
-    const joinEUIclean = joinEUI.replace(/\s/g, '');
-    const appKeyClean = appKey.replace(/\s/g, '');
-  
-    if (
-      !hexRegex.test(devEUI) || devEUIclean.length !== 16 ||
-      !hexRegex.test(joinEUI) || joinEUIclean.length !== 16 ||
-      !hexRegex.test(appKey) || appKeyClean.length !== 32
-    ) {
-      Alert.alert("Error", "Revisa el formato de DevEUI (16 HEX), JoinEUI (16 HEX), AppKey (32 HEX)");
-      return;
-    }
-  
+  const importarDesdeJSON = async () => {
     try {
-      console.log('📤 Enviando registro de dispositivo con los datos:', {
-        deviceId,
-        devEUI,
-        joinEUI,
-        appKey,
-        frequencyPlanId,
-        lorawanVersion,
-        regionalParamsVersion
-      });
+      const res = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
   
-      // Enviar la solicitud al backend para registrar el dispositivo
-      const response = await fetch(`${BACKEND_URL}/registrar-dispositivo`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ deviceId, devEUI, joinEUI, appKey })
-      });
+      if (res.canceled || !res.assets?.length) return;
   
-      const data = await response.json();
-      if (!response.ok) {
-        console.log('❌ Error del servidor:', data);  // Agregar más información del error
-        throw new Error(data.error || 'Error al registrar el dispositivo');
-      }
+      const file = res.assets[0];
+      const response = await fetch(file.uri);
+      const content = await response.text();
+      const data = JSON.parse(content);
   
-      console.log('✅ Registro completo. Dispositivo creado en TTN.');
-      setDeviceId('');
-      setDevEUI('');
-      setJoinEUI('');
-      setAppKey('');
-      setSuccessToast(true);
-    } catch (err) {
-      console.log('❌ Error al registrar dispositivo:', err);
-      if (err instanceof Error) {
-        Alert.alert('Error', err.message || 'No se pudo registrar el dispositivo');
+      if (data.deviceId && data.devEUI && data.joinEUI && data.appKey) {
+        setDeviceId(data.deviceId);
+        setDevEUI(data.devEUI);
+        setJoinEUI(data.joinEUI);
+        setAppKey(data.appKey);
+        Alert.alert('✅ Dispositivo importado correctamente');
       } else {
-        Alert.alert('Error', 'Error desconocido al registrar el dispositivo');
+        Alert.alert('Error', 'El archivo no contiene todos los campos necesarios.');
       }
+    } catch (err) {
+      Alert.alert('Error', 'No se pudo importar el archivo.');
+      console.error(err);
     }
-  };
-  
+  };  
 
-  // Mostrar el cargando mientras verificamos la sesión del usuario
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111' }}>
@@ -139,16 +100,65 @@ export default function HomeScreen() {
         <TTNStatusWidget />
 
         <View style={styles.formContainer}>
-          <TextInput placeholder="Device ID" placeholderTextColor="#9CA3AF" value={deviceId} onChangeText={setDeviceId} style={styles.input} />
-          <TextInput placeholder="DevEUI (16 HEX)" placeholderTextColor="#9CA3AF" value={devEUI} onChangeText={setDevEUI} style={styles.input} />
-          <TextInput placeholder="JoinEUI (16 HEX)" placeholderTextColor="#9CA3AF" value={joinEUI} onChangeText={setJoinEUI} style={styles.input} />
-          <TextInput placeholder="AppKey (32 HEX)" placeholderTextColor="#9CA3AF" value={appKey} onChangeText={setAppKey} style={styles.input} />
-          <TextInput placeholder="Frequency Plan ID" placeholderTextColor="#9CA3AF" value={frequencyPlanId} onChangeText={setFrequencyPlanId} style={styles.input} />
-          <TextInput placeholder="LoRaWAN Version" placeholderTextColor="#9CA3AF" value={lorawanVersion} onChangeText={setLorawanVersion} style={styles.input} />
-          <TextInput placeholder="Regional Params Version" placeholderTextColor="#9CA3AF" value={regionalParamsVersion} onChangeText={setRegionalParamsVersion} style={styles.input} />
+          <TextInput
+            placeholder="Device ID"
+            placeholderTextColor="#9CA3AF"
+            value={deviceId}
+            onChangeText={setDeviceId}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="DevEUI (16 caracteres HEX)"
+            placeholderTextColor="#9CA3AF"
+            value={devEUI}
+            onChangeText={setDevEUI}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="JoinEUI (16 caracteres HEX)"
+            placeholderTextColor="#9CA3AF"
+            value={joinEUI}
+            onChangeText={setJoinEUI}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="AppKey (32 caracteres HEX)"
+            placeholderTextColor="#9CA3AF"
+            value={appKey}
+            onChangeText={setAppKey}
+            style={styles.input}
+          />
 
-          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={async () => {
+              if (!deviceId || !devEUI || !joinEUI || !appKey) {
+                Alert.alert('Error', 'Por favor, completa todos los campos');
+                return;
+              }
+
+              try {
+                await registerDevice({ deviceId, devEUI, joinEUI, appKey });
+                setDeviceId('');
+                setDevEUI('');
+                setJoinEUI('');
+                setAppKey('');
+                setSuccessToast(true);
+              } catch (err) {
+                Alert.alert('Error', 'No se pudo registrar el dispositivo');
+              }
+            }}
+          >
             <Text style={styles.buttonText}>Registrar dispositivo</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: '#444', marginTop: 10 }]}
+            onPress={importarDesdeJSON}
+          >
+            <Text style={[styles.buttonText, { color: '#00ffff' }]}>
+              📥 Importar desde JSON
+            </Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
