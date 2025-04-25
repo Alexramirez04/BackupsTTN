@@ -1,7 +1,7 @@
 const BASE_URL = "https://eu1.cloud.thethings.network/api/v3";
 const API_KEY = "Bearer NNSXS.SRWUH2SEOODOSN3U2W5HQF6YMWM2PBCF62HSXJQ.AXH5KOOEGMKGUPS7KQSCYJW76WGUHLL3DHH2TWOLRXIUS3QQRIHA";
 const APP_ID = "app-de-pruebas";
-const BACKEND_URL = "https://3e7c-90-167-167-242.ngrok-free.app";
+const BACKEND_URL = "https://52c3-85-50-83-166.ngrok-free.app";
 
 // HEX Generator
 export function generateRandomHex(length) {
@@ -98,7 +98,8 @@ export async function getDevices(addLog) {
           status: estado.status === 'active' ? 'active' : 'inactive',
           lastSeen: lastSeenDate?.toISOString() || null,
           temperatura: estado.temperatura ?? null,
-          humedad: estado.humedad ?? null
+          humedad: estado.humedad ?? null,
+          bateria: estado.bateria ?? null, // ✅ AÑADIDO
         };
       } catch (error) {
         console.warn(`⚠️ Error consultando estado de ${device.ids.device_id}`);
@@ -107,7 +108,8 @@ export async function getDevices(addLog) {
           status: 'inactive',
           lastSeen: null,
           temperatura: null,
-          humedad: null
+          humedad: null,
+          bateria: null // ✅ AÑADIDO POR CONSISTENCIA
         };
       }
     })
@@ -115,6 +117,7 @@ export async function getDevices(addLog) {
 
   return devicesWithStatus;
 }
+
 
 // 👉 DETALLES DE UN DISPOSITIVO
 export async function getDeviceById(deviceId, addLog) {

@@ -106,6 +106,7 @@ export default function HomeScreen() {
             value={deviceId}
             onChangeText={setDeviceId}
             style={styles.input}
+            maxLength={32}
           />
           <TextInput
             placeholder="DevEUI (16 caracteres HEX)"
@@ -113,6 +114,7 @@ export default function HomeScreen() {
             value={devEUI}
             onChangeText={setDevEUI}
             style={styles.input}
+            maxLength={16}
           />
           <TextInput
             placeholder="JoinEUI (16 caracteres HEX)"
@@ -120,6 +122,7 @@ export default function HomeScreen() {
             value={joinEUI}
             onChangeText={setJoinEUI}
             style={styles.input}
+            maxLength={16}
           />
           <TextInput
             placeholder="AppKey (32 caracteres HEX)"
@@ -127,6 +130,7 @@ export default function HomeScreen() {
             value={appKey}
             onChangeText={setAppKey}
             style={styles.input}
+            maxLength={32}
           />
 
           <TouchableOpacity

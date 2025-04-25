@@ -49,7 +49,6 @@ export const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 20,
   },
   deleteButtonText: {
     color: '#FFFFFF',
@@ -69,5 +68,39 @@ export const styles = StyleSheet.create({
   statusBadgeText: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  exportButton: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  exportButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+
+  noteInput: {
+    backgroundColor: '#ffffff',
+    borderColor: '#D1D5DB',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    color: '#111827',
+    minHeight: 60,
+    marginBottom: 10,
+    fontSize: 14,
+  },
+  noteSaveButton: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  noteSaveButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });

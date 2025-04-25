@@ -17,6 +17,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { getDevices } from '@/services/ttnApi';
 import MiniDashboard from '@/components/MiniDashboard';
 import { styles } from '../../styles/dispositivos.styles';
+import LottieView from 'lottie-react-native';
 
 type Device = {
   ids: {
@@ -108,6 +109,20 @@ export default function DispositivosScreen() {
         onChangeText={handleSearchChange}
       />
 
+      {loading && (
+        <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 10 }}>
+          <LottieView
+            source={require('@/assets/Animation - 2.json')}
+            autoPlay
+            loop
+            style={{ width: 80, height: 80 }}
+          />
+          <ThemedText style={{ marginTop: 4, fontWeight: '500', color: '#777', fontSize: 12 }}>
+            Cargando dispositivos...
+          </ThemedText>
+        </View>
+      )}
+
       <FlatList
         data={filteredDevices}
         keyExtractor={(item) => item.ids.device_id}
@@ -153,7 +168,6 @@ export default function DispositivosScreen() {
         }
       />
 
-      {loading && <ActivityIndicator style={{ marginTop: 20 }} />}
     </SafeAreaView>
   );
 }

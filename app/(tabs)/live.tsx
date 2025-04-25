@@ -7,8 +7,10 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 import styles from "../../styles/live.styles";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
+import ResumenDiario from "@/components/ResumenDiario";
 
-const BACKEND_URL = "https://3e7c-90-167-167-242.ngrok-free.app";
+const BACKEND_URL = "https://52c3-85-50-83-166.ngrok-free.app";
 
 export default function LiveDataScreen() {
   const [labels, setLabels] = useState<string[]>([]);
@@ -98,9 +100,73 @@ export default function LiveDataScreen() {
     }
   };
 
+  const exportarDatosCSV = async () => {
+    try {
+      const lines = [
+        "Sensor,Timestamp,Humedad,Temperatura"
+      ];
+  
+      labels.forEach((sensorId) => {
+        const datos = historicos[sensorId] || [];
+        datos.forEach((d) => {
+          const ts = new Date(d.ts).toISOString();
+          const humedad = typeof d.humedad === "number" ? d.humedad : "";
+          const temperatura = typeof d.temperatura === "number" ? d.temperatura : "";
+          lines.push(`${sensorId},${ts},${humedad},${temperatura}`);
+        });
+      });
+  
+      const csvContent = lines.join("\n");
+      const fileUri = FileSystem.documentDirectory + "datos_sensores.csv";
+  
+      await FileSystem.writeAsStringAsync(fileUri, csvContent, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+  
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert("No disponible", "Compartir archivos no está disponible en este dispositivo");
+        return;
+      }
+  
+      await Sharing.shareAsync(fileUri);
+    } catch (error) {
+      Alert.alert("Error", "No se pudo exportar el CSV");
+      console.error(error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView ref={exportRef} style={styles.inner} showsVerticalScrollIndicator={false}>
+        <ResumenDiario
+          total={labels.length}
+          activos={labels.filter((_, i) => humidities[i] !== null && temperatures[i] !== null).length}
+          inactivos={labels.filter((_, i) => humidities[i] === null || temperatures[i] === null).length}
+          mediaTemp={
+            labels.length
+              ? (temperatures.reduce((a, b) => a + b, 0) / labels.length).toFixed(1)
+              : "0"
+          }
+          mediaHumedad={
+            labels.length
+              ? (humidities.reduce((a, b) => a + b, 0) / labels.length).toFixed(1)
+              : "0"
+          }
+          ultimaActualizacion={
+            labels.length
+              ? new Date(
+                  Math.max(
+                    ...labels.map((id) => {
+                      const hist = historicos[id];
+                      if (!hist?.length) return 0;
+                      return new Date(hist[hist.length - 1].ts).getTime();
+                    })
+                  )
+                )
+              : null
+          }
+        />
+
         <Text style={styles.title}>💧 Humedad</Text>
 
         {labels.length > 0 ? (
@@ -242,6 +308,23 @@ export default function LiveDataScreen() {
                   📤 Exportar gráficos a imagen
                 </Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={exportarDatosCSV}
+                style={{
+                  borderColor: "#00ff99",
+                  borderWidth: 2,
+                  borderRadius: 12,
+                  paddingVertical: 10,
+                  paddingHorizontal: 20,
+                  marginTop: 12
+                }}
+              >
+                <Text style={{ color: "#00ff99", fontWeight: "bold", fontSize: 16 }}>
+                  📄 Exportar datos a CSV
+                </Text>
+              </TouchableOpacity>
+
             </View>
 
           </>
