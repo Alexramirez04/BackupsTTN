@@ -1,7 +1,7 @@
 const BASE_URL = "https://eu1.cloud.thethings.network/api/v3";
 const API_KEY = "Bearer NNSXS.SRWUH2SEOODOSN3U2W5HQF6YMWM2PBCF62HSXJQ.AXH5KOOEGMKGUPS7KQSCYJW76WGUHLL3DHH2TWOLRXIUS3QQRIHA";
 const APP_ID = "app-de-pruebas";
-const BACKEND_URL = "https://52c3-85-50-83-166.ngrok-free.app";
+const BACKEND_URL = "https://4583-90-167-255-195.ngrok-free.app";
 
 // HEX Generator
 export function generateRandomHex(length) {

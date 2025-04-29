@@ -10,7 +10,7 @@ import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import ResumenDiario from "@/components/ResumenDiario";
 
-const BACKEND_URL = "https://52c3-85-50-83-166.ngrok-free.app";
+const BACKEND_URL = "https://4583-90-167-255-195.ngrok-free.app";
 
 export default function LiveDataScreen() {
   const [labels, setLabels] = useState<string[]>([]);

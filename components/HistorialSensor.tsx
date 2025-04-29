@@ -13,7 +13,7 @@ export default function HistorialSensor({ deviceId }: Props) {
   useEffect(() => {
     const fetchHistorial = async () => {
       try {
-        const res = await fetch(`https://52c3-85-50-83-166.ngrok-free.app/historico/${deviceId}`);
+        const res = await fetch(`https://607a-90-167-167-4.ngrok-free.app/historico/${deviceId}`);
         const data = await res.json();
         setDatos(data);
       } catch (err) {
