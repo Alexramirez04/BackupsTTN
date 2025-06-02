@@ -1,0 +1,3 @@
+@echo off
+echo Iniciando el backend en http://localhost:3000...
+node scripts\backend.js
