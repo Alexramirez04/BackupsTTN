@@ -45,7 +45,7 @@ export default function DispositivosScreen() {
     loadDevices();
     const interval = setInterval(loadDevices, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [applicationId]);
 
   useEffect(() => {
     filterDevices();
@@ -65,6 +65,7 @@ export default function DispositivosScreen() {
         return;
       }
       const result = await getDevices(console.log, applicationId);
+      console.log('Dispositivos obtenidos:', result);
       const devicesWithStatus = result.map((device: Device) => ({
         ...device,
         status: device.status || 'inactive',
@@ -73,6 +74,7 @@ export default function DispositivosScreen() {
       setDevices(devicesWithStatus);
       setFilteredDevices(devicesWithStatus);
     } catch (err: any) {
+      console.error('Error al cargar dispositivos:', err);
       if (err?.message === 'No hay API Key guardada.') {
         setDevices([]);
         setFilteredDevices([]);

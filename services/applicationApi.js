@@ -258,6 +258,18 @@ export async function createApplication({ applicationId, name, description }, ad
 
     // Si la respuesta original fue exitosa
     addLog?.(`✅ Aplicación "${applicationId}" creada correctamente`);
+
+    // Crear el webhook
+    try {
+      const apiKey = await SecureStore.getItemAsync('TTN_API_KEY');
+      if (!apiKey) throw new Error('No hay API Key guardada.');
+      await createWebhook(applicationId, apiKey);
+      addLog?.(`✅ Webhook creado correctamente para la aplicación "${applicationId}"`);
+    } catch (error) {
+      console.error("Error al crear el webhook:", error);
+      addLog?.(`❌ Error al crear el webhook para la aplicación "${applicationId}": ${error.message}`);
+    }
+
     return responseBody || {};
   } catch (error) {
     console.error("Error completo:", error);
@@ -314,5 +326,46 @@ export async function deleteApplication(applicationId, addLog) {
   }
 
   addLog?.(`✅ Aplicación "${applicationId}" eliminada`);
+  return response.json();
+}
+
+// CREAR WEBHOOK
+async function createWebhook(applicationId, token) {
+  const url = `${BASE_URL}/as/webhooks/${applicationId}/webhook`;
+  const payload = {
+    webhook: {
+      base_url: "https://ttndevicemanager.onrender.com/webhook/ttn",
+      format: "json",
+      uplink_message: { path: "/" },
+      join_accept: { path: "/" },
+      downlink_ack: { path: "/" },
+      downlink_nack: { path: "/" },
+      downlink_sent: { path: "/" },
+      downlink_failed: { path: "/" },
+      downlink_queued: { path: "/" },
+      downlink_queue_invalidated: { path: "/" },
+      location_solved: { path: "/" },
+      service_data: { path: "/" },
+      health_status: {}
+    },
+    field_mask: {
+      paths: ["base_url", "format", "uplink_message", "join_accept", "downlink_ack", "downlink_nack", "downlink_sent", "downlink_failed", "downlink_queued", "downlink_queue_invalidated", "location_solved", "service_data", "health_status"]
+    }
+  };
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Error al crear el webhook');
+  }
+
   return response.json();
 }

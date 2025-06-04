@@ -24,7 +24,7 @@ export default function TTNStatusWidget() {
             });
             setOnline(response.ok);
           } catch (err) {
-            console.log("Error al verificar conexión con TTN:", err);
+            console.log("Error al verificar conexión con TTN:", err);  
             setOnline(false);
           }
           return;

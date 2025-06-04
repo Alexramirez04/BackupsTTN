@@ -10,99 +10,6 @@ try {
   BACKEND_URL = null;
 }
 
-// HEX Generator
-export function generateRandomHex(length) {
-  const chars = '0123456789ABCDEF';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-// REGISTRAR NUEVO DISPOSITIVO
-export async function registerDevice(
-  { deviceId, devEUI, joinEUI, appKey, lorawanVersion = "1.0.3", frequencyPlanId = "EU_863_870", regionalParametersVersion = "RP001-1.0.3-A", applicationId },
-  addLog
-) {
-  const apiKey = await SecureStore.getItemAsync('TTN_API_KEY');
-  if (!apiKey) throw new Error('No hay API Key guardada.');
-  if (!applicationId) throw new Error("ID de aplicación no proporcionado");
-  addLog?.(`📦 Registrando dispositivo "${deviceId}" en aplicación "${applicationId}"...`);
-
-  // Log para depuración
-  console.log(`📦 Registrando dispositivo con parámetros:`, {
-    deviceId,
-    devEUI,
-    joinEUI,
-    appKey,
-    lorawanVersion,
-    frequencyPlanId,
-    regionalParametersVersion,
-    applicationId
-  });
-
-  // Asegurarse de que los valores sean correctos y compatibles con TTN
-  // La versión 1.0.3 no es válida para TTN, usar 1.0.2 en su lugar
-  const validLorawanVersion = lorawanVersion === "1.0.3" ? "1.0.2" : (lorawanVersion || "1.0.2");
-  const validFrequencyPlanId = frequencyPlanId || "EU_863_870";
-  const validRegionalParametersVersion = regionalParametersVersion || "RP001-1.0.2-A";
-
-  const payload = {
-    end_device: {
-      ids: {
-        device_id: deviceId.toLowerCase(),
-        dev_eui: devEUI.toUpperCase(),
-        join_eui: joinEUI.toUpperCase()
-      },
-      join_server_address: "eu1.cloud.thethings.network",
-      network_server_address: "eu1.cloud.thethings.network",
-      application_server_address: "eu1.cloud.thethings.network",
-      root_keys: {
-        app_key: {
-          key: appKey.toUpperCase()
-        }
-      },
-      lorawan_version: validLorawanVersion,
-      frequency_plan_id: validFrequencyPlanId,
-      mac_settings: {},
-      supports_join: true,
-      regional_parameters_version: validRegionalParametersVersion
-    }
-  };
-
-  // Log del payload completo
-  console.log(`📦 Payload enviado a TTN:`, JSON.stringify(payload, null, 2));
-
-  const response = await fetch(`${BASE_URL}/applications/${applicationId}/devices`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    console.log(`❌ Error al registrar dispositivo:`, error);
-    addLog?.(`❌ Error al registrar: ${error.message}`);
-    throw new Error(error.message || 'Error al registrar el dispositivo');
-  }
-
-  const responseData = await response.json();
-  console.log(`✅ Respuesta de TTN:`, JSON.stringify(responseData, null, 2));
-
-  // Verificar si los campos adicionales se han aplicado correctamente
-  console.log(`📋 Verificando campos adicionales en la respuesta:`);
-  console.log(`- lorawan_version: ${responseData.lorawan_version || 'N/A'}`);
-  console.log(`- frequency_plan_id: ${responseData.frequency_plan_id || 'N/A'}`);
-  console.log(`- regional_parameters_version: ${responseData.regional_parameters_version || 'N/A'}`);
-
-  addLog?.(`✅ Dispositivo "${deviceId}" registrado correctamente en aplicación "${applicationId}"`);
-  return responseData;
-}
-
 // LISTA DE DISPOSITIVOS
 export async function getDevices(addLog, applicationId) {
   const apiKey = await SecureStore.getItemAsync('TTN_API_KEY');
@@ -123,9 +30,11 @@ export async function getDevices(addLog, applicationId) {
 
   if (!response.ok) {
     const error = await response.json();
-    console.log('Error al obtener dispositivos:', error);
+    console.error('Error al obtener dispositivos:', error);
     addLog?.(`❌ Error al obtener dispositivos: ${JSON.stringify(error)}`);
     throw new Error(error.message || 'Error al obtener los dispositivos');
+  } else {
+    console.log('Dispositivos obtenidos correctamente de TTN');
   }
 
   const data = await response.json();

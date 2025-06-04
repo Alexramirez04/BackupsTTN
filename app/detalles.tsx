@@ -175,37 +175,6 @@ export default function DetallesDispositivo() {
     await Sharing.shareAsync(fileUri);
   };
 
-  const handleUpdateLoRaWANConfig = async () => {
-    try {
-      if (!applicationId) {
-        console.error("No se ha proporcionado un ID de aplicación para actualizar el dispositivo");
-        Alert.alert('Error', 'No se proporcionó un ID de aplicación');
-        return;
-      }
-
-      // Valores predeterminados para los campos adicionales (compatibles con TTN)
-      const lorawanVersion = "1.0.2"; // 1.0.3 no es compatible con TTN
-      const frequencyPlanId = "EU_863_870";
-      const regionalParametersVersion = "RP001-1.0.2-A";
-
-      await updateDevice({
-        deviceId: deviceId as string,
-        lorawanVersion,
-        frequencyPlanId,
-        regionalParametersVersion,
-        applicationId: applicationId as string
-      }, console.log);
-
-      Alert.alert('Éxito', 'Configuración LoRaWAN actualizada correctamente');
-
-      // Recargar los datos del dispositivo
-      fetchDevice();
-    } catch (error) {
-      console.error("Error al actualizar la configuración LoRaWAN:", error);
-      Alert.alert('Error', 'No se pudo actualizar la configuración LoRaWAN');
-    }
-  };
-
   const handleExportCSV = async () => {
     if (!device) return;
 
@@ -364,13 +333,6 @@ export default function DetallesDispositivo() {
               onPress={handleExportCSV}
             >
               <ThemedText style={[styles.exportButtonText, { color: colors.text }]}>📤 Exportar datos como CSV</ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.exportButton, { borderColor: colors.border, backgroundColor: isDark ? '#2a4d8a' : '#e6f0ff' }]}
-              onPress={handleUpdateLoRaWANConfig}
-            >
-              <ThemedText style={[styles.exportButtonText, { color: isDark ? '#ffffff' : '#0066cc' }]}>🔄 Actualizar configuración LoRaWAN</ThemedText>
             </TouchableOpacity>
 
             <TouchableOpacity

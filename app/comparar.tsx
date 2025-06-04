@@ -4,7 +4,8 @@ import { LineChart } from "react-native-chart-kit";
 import { Picker } from "@react-native-picker/picker";
 import { getDevices } from "@/services/ttnApi";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { compararStyles as styles } from "@/styles/comparar.styles";
+import { compararStyles } from "@/styles/comparar.styles";
+import { useTheme } from '@/context/ThemeContext';
 import { BACKEND_URL } from '@/config/appConfig.new';
 import { useApplication } from '@/context/ApplicationContext';
 const chartWidth = Dimensions.get("window").width - 30;
@@ -15,6 +16,22 @@ export default function CompararScreen() {
   const [sensor1, setSensor1] = useState<string | null>(null);
   const [sensor2, setSensor2] = useState<string | null>(null);
   const { applicationId } = useApplication();
+  const styles = compararStyles();
+  const { colors } = useTheme();
+
+  const chartConfig = {
+    backgroundGradientFrom: colors.background,
+    backgroundGradientTo: colors.background,
+    color: (opacity = 1) => `rgba(255,255,255,${opacity})`,
+    labelColor: () => "#fff",
+    propsForVerticalLabels: {
+      rotation: 90,
+      fontSize: 10
+    },
+    propsForBackgroundLines: {
+      stroke: "#333"
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,7 +85,7 @@ export default function CompararScreen() {
           selectedValue={sensor1}
           onValueChange={(value) => setSensor1(value)}
           style={styles.picker}
-          dropdownIconColor="#00ffff"
+          dropdownIconColor={colors.text}
         >
           <Picker.Item label="Selecciona un sensor" value={null} />
           {labels.map((id) => (
@@ -81,7 +98,7 @@ export default function CompararScreen() {
           selectedValue={sensor2}
           onValueChange={(value) => setSensor2(value)}
           style={styles.picker}
-          dropdownIconColor="#ff00ff"
+          dropdownIconColor={colors.text}
         >
           <Picker.Item label="Selecciona otro sensor" value={null} />
           {labels.map((id) => (
@@ -132,20 +149,3 @@ export default function CompararScreen() {
     </SafeAreaView>
   );
 }
-
-const chartConfig = {
-    backgroundGradientFrom: "#1c1c1e",
-    backgroundGradientTo: "#1c1c1e",
-    color: (opacity = 1) => `rgba(255,255,255,${opacity})`,
-    labelColor: () => "#fff",
-    propsForVerticalLabels: {
-      rotation: 90,
-      fontSize: 10
-    },
-    propsForBackgroundLines: {
-      stroke: "#333"
-    }
-  };
-
-
-
