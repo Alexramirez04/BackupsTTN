@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
   deviceName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#222',
+    color: '#0fe',
     letterSpacing: 0.2,
     flex: 1,
     marginLeft: 4,

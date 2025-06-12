@@ -181,94 +181,12 @@ export async function getDeviceById(deviceId, addLog, applicationId) {
   }
 }
 
-// ACTUALIZAR UN DISPOSITIVO EXISTENTE
-export async function updateDevice(
-  { deviceId, lorawanVersion = "1.0.2", frequencyPlanId = "EU_863_870", regionalParametersVersion = "RP001-1.0.2-A", applicationId },
-  addLog
-) {
-  const apiKey = await SecureStore.getItemAsync('TTN_API_KEY');
-  if (!apiKey) throw new Error('No hay API Key guardada.');
-  if (!applicationId) throw new Error("ID de aplicación no proporcionado");
-  // Corregir la versión LoRaWAN si es 1.0.3 (no compatible con TTN)
-  if (lorawanVersion === "1.0.3") {
-    lorawanVersion = "1.0.2";
-    console.log("⚠️ Versión LoRaWAN 1.0.3 no compatible con TTN, usando 1.0.2 en su lugar");
-  }
-  addLog?.(`🔄 Actualizando dispositivo "${deviceId}" en aplicación "${applicationId}"...`);
-
-  console.log(`🔄 Actualizando dispositivo con parámetros:`, {
-    deviceId,
-    lorawanVersion,
-    frequencyPlanId,
-    regionalParametersVersion,
-    applicationId
-  });
-
-  // Primero obtenemos el dispositivo actual para no perder configuración
-  const response = await fetch(`${BASE_URL}/applications/${applicationId}/devices/${deviceId}`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    addLog?.(`❌ Error al obtener ${deviceId}: ${error.message}`);
-    throw new Error(error.message || 'Error al obtener el dispositivo');
-  }
-
-  const currentDevice = await response.json();
-
-  // Preparamos el payload con los datos actuales más los nuevos
-  const payload = {
-    end_device: {
-      ...currentDevice,
-      lorawan_version: lorawanVersion,
-      frequency_plan_id: frequencyPlanId,
-      regional_parameters_version: regionalParametersVersion
-    }
-  };
-
-  console.log(`🔄 Payload para actualización:`, JSON.stringify(payload, null, 2));
-
-  // Realizamos la actualización
-  const updateResponse = await fetch(`${BASE_URL}/applications/${applicationId}/devices/${deviceId}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!updateResponse.ok) {
-    const error = await updateResponse.json();
-    console.log(`❌ Error al actualizar dispositivo:`, error);
-    addLog?.(`❌ Error al actualizar: ${error.message}`);
-    throw new Error(error.message || 'Error al actualizar el dispositivo');
-  }
-
-  const responseData = await updateResponse.json();
-  console.log(`✅ Respuesta de TTN (actualización):`, JSON.stringify(responseData, null, 2));
-
-  // Verificar si los campos adicionales se han aplicado correctamente
-  console.log(`📋 Verificando campos adicionales en la respuesta de actualización:`);
-  console.log(`- lorawan_version: ${responseData.lorawan_version || 'N/A'}`);
-  console.log(`- frequency_plan_id: ${responseData.frequency_plan_id || 'N/A'}`);
-  console.log(`- regional_parameters_version: ${responseData.regional_parameters_version || 'N/A'}`);
-
-  addLog?.(`✅ Dispositivo "${deviceId}" actualizado correctamente en aplicación "${applicationId}"`);
-  return responseData;
-}
-
 // ELIMINAR UN DISPOSITIVO
 export async function deleteDevice(deviceId, addLog, applicationId) {
   const apiKey = await SecureStore.getItemAsync('TTN_API_KEY');
   if (!apiKey) throw new Error('No hay API Key guardada.');
   if (!applicationId) throw new Error("ID de aplicación no proporcionado");
-  addLog?.(`🗑️ Eliminando dispositivo "${deviceId}" de aplicación "${applicationId}"...`);
+  addLog?.(`�️ Eliminando dispositivo "${deviceId}" de aplicación "${applicationId}"...`);
 
   const response = await fetch(`${BASE_URL}/applications/${applicationId}/devices/${deviceId}`, {
     method: "DELETE",

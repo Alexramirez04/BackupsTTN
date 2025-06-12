@@ -11,6 +11,7 @@ export const compararStyles = () => {
       flex: 1,
       backgroundColor: colors.background,
       padding: 16,
+      marginTop: -30,
     },
     title: {
       fontSize: 24,
@@ -29,7 +30,9 @@ export const compararStyles = () => {
     picker: {
       backgroundColor: colors.card,
       color: colors.text,
-      borderRadius: 12,
+      borderRadius: 16,
+      borderWidth: 2,
+      borderColor: '#00ffff',
       marginBottom: 16,
     },
     chartTitle: {

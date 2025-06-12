@@ -23,7 +23,7 @@ export default function CompararScreen() {
     backgroundGradientFrom: colors.background,
     backgroundGradientTo: colors.background,
     color: (opacity = 1) => `rgba(255,255,255,${opacity})`,
-    labelColor: () => "#fff",
+    labelColor: () => colors.text,
     propsForVerticalLabels: {
       rotation: 90,
       fontSize: 10
@@ -81,30 +81,34 @@ export default function CompararScreen() {
         <Text style={styles.title}>📊 Comparar dos sensores</Text>
 
         <Text style={styles.label}>Sensor 1:</Text>
-        <Picker
-          selectedValue={sensor1}
-          onValueChange={(value) => setSensor1(value)}
-          style={styles.picker}
-          dropdownIconColor={colors.text}
-        >
-          <Picker.Item label="Selecciona un sensor" value={null} />
-          {labels.map((id) => (
-            <Picker.Item key={id} label={id} value={id} />
-          ))}
-        </Picker>
+        <View style={styles.picker}>
+          <Picker
+            selectedValue={sensor1}
+            onValueChange={(value) => setSensor1(value)}
+            dropdownIconColor={colors.text}
+            style={{color: colors.text}}
+          >
+            <Picker.Item label="Selecciona un sensor" value={null} />
+            {labels.map((id) => (
+              <Picker.Item key={id} label={id} value={id} />
+            ))}
+          </Picker>
+        </View>
 
         <Text style={styles.label}>Sensor 2:</Text>
-        <Picker
-          selectedValue={sensor2}
-          onValueChange={(value) => setSensor2(value)}
-          style={styles.picker}
-          dropdownIconColor={colors.text}
-        >
-          <Picker.Item label="Selecciona otro sensor" value={null} />
-          {labels.map((id) => (
-            <Picker.Item key={id} label={id} value={id} />
-          ))}
-        </Picker>
+        <View style={styles.picker}>
+          <Picker
+            selectedValue={sensor2}
+            onValueChange={(value) => setSensor2(value)}
+            dropdownIconColor={colors.text}
+            style={{color: colors.text}}
+          >
+            <Picker.Item label="Selecciona otro sensor" value={null} />
+            {labels.map((id) => (
+              <Picker.Item key={id} label={id} value={id} />
+            ))}
+          </Picker>
+        </View>
 
         {sensor1 && sensor2 && historicos[sensor1] && historicos[sensor2] && (
           <>

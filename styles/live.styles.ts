@@ -8,6 +8,7 @@ export default StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#1c1c1e", // Mantener el color original
+    marginTop: -20,
   },
 
   // Contenedor interno con mejor espaciado
@@ -18,7 +19,7 @@ export default StyleSheet.create({
 
   // Contenido del ScrollView
   scrollContent: {
-    paddingTop: 16,
+    paddingTop: 0,
     paddingBottom: 100, // Espacio adicional al final para evitar que el contenido quede oculto por la barra de navegación
   },
   title: {
@@ -68,15 +69,15 @@ export default StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     marginTop: 12,
-    minWidth: 250,
+    minWidth: 280,
     alignItems: 'center',
 
     // Sombra para efecto de elevación
-    shadowColor: 'rgba(0, 0, 0, 0.3)',
+    /*shadowColor: 'rgba(0, 0, 0, 0.3)',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 4,*/
   },
 
   // Texto de botón de exportación
@@ -89,8 +90,10 @@ export default StyleSheet.create({
   // Botón de comparar
   compareButton: {
     backgroundColor: "#00ffff",
+    borderColor: "#00ffff",
+    borderWidth: 2,
     padding: 10,
-    borderRadius: 10,
+    borderRadius: 16,
     alignItems: "center",
     marginVertical: 12,
     marginHorizontal: 20,

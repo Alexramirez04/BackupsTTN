@@ -27,7 +27,7 @@ export default function ResumenDiario({
         borderColor: "#00ffff",
         padding: 16,
         marginBottom: 16,
-        marginTop: 16,
+        marginTop: 0,
         gap: 8,
       }}
     >

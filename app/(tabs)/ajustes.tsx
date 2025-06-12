@@ -91,26 +91,7 @@ export default function AjustesScreen() {
             </View>
           </View>
 
-          {/* Sección de Notificaciones */}
-          <View style={[styles.section, { backgroundColor: colors.card }]}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="notifications-outline" size={22} color={colors.primary} />
-              <ThemedText style={styles.sectionTitle}>Notificaciones</ThemedText>
-            </View>
 
-            <View style={[styles.settingItem, { borderColor: colors.border }]}>
-              <View style={styles.settingLabelContainer}>
-                <Ionicons name="notifications" size={20} color={colors.textSecondary} style={styles.settingIcon} />
-                <ThemedText style={styles.label}>Notificaciones push</ThemedText>
-              </View>
-              <Switch
-                value={notifEnabled}
-                onValueChange={setNotifEnabled}
-                trackColor={{ false: '#767577', true: colors.primary }}
-                thumbColor={notifEnabled ? colors.success : '#f4f3f4'}
-              />
-            </View>
-          </View>
 
           {/* Sección de Información */}
           <View style={[styles.section, { backgroundColor: colors.card }]}>

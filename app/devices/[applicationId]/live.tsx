@@ -408,7 +408,7 @@ export default function LiveDataScreen() {
                 .filter((v) => typeof v === "number");
 
               const timeLabels = datos.map((d) =>
-                new Date(d.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                new Date(d.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })
               );
 
               // No mostrar sensores sin datos
@@ -420,7 +420,7 @@ export default function LiveDataScreen() {
               const timeLabelsData = timeLabels;
 
               return (
-                <View key={`historico-${id}`} style={{ marginBottom: 32 }}>
+                <View key={`historico-${id}`} style={{ marginBottom: 48 }}>
                   <Text style={[styles.title, { color: isDark ? '#00ffff' : colors.primary }]}>{id} • 💧 Humedad</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View>

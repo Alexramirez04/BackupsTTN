@@ -44,6 +44,7 @@ function RootLayoutInner() {
             },
           }}
         >
+          <Stack.Screen name="index" options={{ title: 'Inicio de sesión' }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="devices" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
@@ -75,4 +76,3 @@ export default function RootLayout() {
     </ThemeProvider>
   );
 }
-
